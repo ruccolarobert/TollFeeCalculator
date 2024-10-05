@@ -2,7 +2,7 @@
 using System.Globalization;
 using TollFeeCalculator;
 
-public class TollCalculator
+public class TollCalculator // TODO: define interface for toll calculator?
 {
 
     /**
@@ -13,11 +13,15 @@ public class TollCalculator
      * @return - the total toll fee for that day
      */
 
-    public int GetTollFee(Vehicle vehicle, DateTime[] dates)
+    public int GetTollFee(Vehicle vehicle, DateTime[] dates) // TODO: if permitted, change signature of dates to IEnumerable<DateTime>?
     {
-        DateTime intervalStart = dates[0];
+        // TODO: Validate all dates are within the same day
+
+        DateTime intervalStart = dates[0]; 
+        // TODO: assuming datas are for a specific day only - check for toll free date
+        
         int totalFee = 0;
-        foreach (DateTime date in dates)
+        foreach (DateTime date in dates) // TODO: function for batching in 60 min chunks, potentially where max toll per batch is found. Alternatively a separate function to pick the maximum fee for that batch
         {
             int nextFee = GetTollFee(date, vehicle);
             int tempFee = GetTollFee(intervalStart, vehicle);
@@ -42,8 +46,8 @@ public class TollCalculator
 
     private bool IsTollFreeVehicle(Vehicle vehicle)
     {
-        if (vehicle == null) return false;
-        String vehicleType = vehicle.GetVehicleType();
+        if (vehicle == null) return false;  // TODO: yield error?
+        String vehicleType = vehicle.GetVehicleType(); // TODO: convert to switch statement, or perhaps better extend interface to hold this information
         return vehicleType.Equals(TollFreeVehicles.Motorbike.ToString()) ||
                vehicleType.Equals(TollFreeVehicles.Tractor.ToString()) ||
                vehicleType.Equals(TollFreeVehicles.Emergency.ToString()) ||
@@ -52,8 +56,10 @@ public class TollCalculator
                vehicleType.Equals(TollFreeVehicles.Military.ToString());
     }
 
-    public int GetTollFee(DateTime date, Vehicle vehicle)
+    public int GetTollFee(DateTime date, Vehicle vehicle) // TODO: does this need to be public?
     {
+        // TODO: simplify this whole method.
+
         if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
 
         int hour = date.Hour;
@@ -79,7 +85,7 @@ public class TollCalculator
 
         if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) return true;
 
-        if (year == 2013)
+        if (year == 2013) // TODO: support more years than this. Abstract this into a service interface
         {
             if (month == 1 && day == 1 ||
                 month == 3 && (day == 28 || day == 29) ||
