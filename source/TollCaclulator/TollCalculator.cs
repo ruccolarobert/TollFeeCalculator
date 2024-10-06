@@ -75,11 +75,13 @@
             else return 0;
         }
 
-        private Boolean IsTollFreeDate(DateTime date)
+        private static Boolean IsTollFreeDate(DateTime date)
         {
             int year = date.Year;
             int month = date.Month;
             int day = date.Day;
+
+            if (month == 7) return true;
 
             if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) return true;
 
