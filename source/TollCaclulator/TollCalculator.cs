@@ -13,17 +13,19 @@
 
         public int GetTollFee(Vehicle vehicle, DateTime[] dates) // TODO: if permitted, change signature of dates to IEnumerable<DateTime>?
         {
+            if (IsTollFreeVehicle(vehicle)) return 0;
+
             var datesByDay = dates.GroupBy(date => date.Date);
             if (datesByDay.Count() > 1) throw new ArgumentException("All dates must be within the same day.");
 
             DateTime intervalStart = dates[0];
-            // TODO: assuming datas are for a specific day only - check for toll free date
+            if (IsTollFreeDate(intervalStart)) return 0;
 
             int totalFee = 0;
             foreach (DateTime date in dates) // TODO: function for batching in 60 min chunks, potentially where max toll per batch is found. Alternatively a separate function to pick the maximum fee for that batch
             {
-                int nextFee = GetTollFee(date, vehicle);
-                int tempFee = GetTollFee(intervalStart, vehicle);
+                int nextFee = GetTollFee(date);
+                int tempFee = GetTollFee(intervalStart);
 
                 var diffInMillies = (date - intervalStart).TotalMilliseconds;
                 var minutes = diffInMillies / 1000 / 60;
@@ -55,11 +57,9 @@
                    vehicleType.Equals(TollFreeVehicles.Military.ToString());
         }
 
-        public int GetTollFee(DateTime date, Vehicle vehicle) // TODO: does this need to be public?
+        private int GetTollFee(DateTime date)
         {
             // TODO: simplify this whole method.
-
-            if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
 
             int hour = date.Hour;
             int minute = date.Minute;
