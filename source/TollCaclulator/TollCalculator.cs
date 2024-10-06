@@ -13,7 +13,8 @@
 
         public int GetTollFee(Vehicle vehicle, DateTime[] dates) // TODO: if permitted, change signature of dates to IEnumerable<DateTime>?
         {
-            // TODO: Validate all dates are within the same day
+            var datesByDay = dates.GroupBy(date => date.Date);
+            if (datesByDay.Count() > 1) throw new ArgumentException("All dates must be within the same day.");
 
             DateTime intervalStart = dates[0];
             // TODO: assuming datas are for a specific day only - check for toll free date
