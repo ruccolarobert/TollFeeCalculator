@@ -44,7 +44,7 @@
 
         private bool IsTollFreeVehicle(Vehicle vehicle)
         {
-            if (vehicle == null) return false;  // TODO: yield error?
+            if (vehicle == null) throw new NullReferenceException($"{nameof(Vehicle)} undefined.");
             String vehicleType = vehicle.GetVehicleType(); // TODO: convert to switch statement, or perhaps better extend interface to hold this information
             return vehicleType.Equals(TollFreeVehicles.Motorbike.ToString()) ||
                    vehicleType.Equals(TollFreeVehicles.Tractor.ToString()) ||
