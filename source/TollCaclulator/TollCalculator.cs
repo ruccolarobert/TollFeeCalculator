@@ -2,6 +2,7 @@
 {
     public class TollCalculator // TODO: define interface for toll calculator?
     {
+        private const int MAX_FEE = 18;
 
         /**
          * Calculate the total toll fee for one day
@@ -21,26 +22,14 @@
             DateTime intervalStart = dates[0];
             if (IsTollFreeDate(intervalStart)) return 0;
 
-            int totalFee = 0;
-            foreach (DateTime date in dates) // TODO: function for batching in 60 min chunks, potentially where max toll per batch is found. Alternatively a separate function to pick the maximum fee for that batch
+            var batches = BatchPassages(dates);
+            var totalFee = 0;
+            foreach (var batch in batches)
             {
-                int nextFee = GetTollFee(date);
-                int tempFee = GetTollFee(intervalStart);
-
-                var diffInMillies = (date - intervalStart).TotalMilliseconds;
-                var minutes = diffInMillies / 1000 / 60;
-
-                if (minutes <= 60)
-                {
-                    if (totalFee > 0) totalFee -= tempFee;
-                    if (nextFee >= tempFee) tempFee = nextFee;
-                    totalFee += tempFee;
-                }
-                else
-                {
-                    totalFee += nextFee;
-                }
+                var maxFee = MaxFeeForBatch(batch);
+                totalFee += maxFee;
             }
+
             if (totalFee > 60) totalFee = 60;
             return totalFee;
         }
@@ -130,6 +119,19 @@
             }
 
             yield return tempGroup; // yield last group
+        }
+
+        internal int MaxFeeForBatch(IEnumerable<DateTime> timestamps)
+        {
+            var maxFee = 0;
+            foreach (var timestamp in timestamps)
+            {
+                var fee = GetTollFee(timestamp);
+                if (fee == MAX_FEE) return fee;
+                if (fee > maxFee) maxFee = fee;
+            }
+
+            return maxFee;
         }
 
         private enum TollFreeVehicles

@@ -62,5 +62,21 @@ namespace TollFeeCalculator.Tests
             batches.First().Should().HaveCount(1);
             batches.Last().Should().HaveCount(1);
         }
+
+        [Fact]
+        public void MaxFeeForBatch_WhenPassagesAreWithin60Minutes_ShouldReturnTheHighestFee()
+        {
+            // Arrange
+            TollCalculator tollCalculator = new TollCalculator();
+            DateTime[] timestamps = [
+                new DateTime(2024, 10, 3, 6, 0, 0), // 8
+                new DateTime(2024, 10, 3, 6, 59, 59)]; // 13
+
+            // Act
+            var fee = tollCalculator.MaxFeeForBatch(timestamps);
+
+            // Assert
+            fee.Should().Be(13);
+        }
     }
 }
