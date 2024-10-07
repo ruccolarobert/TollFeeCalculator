@@ -31,5 +31,36 @@ namespace TollFeeCalculator.Tests
             // Assert
             act.Should().Throw<ArgumentException>();
         }
+
+        [Fact]
+        public void BatchPassages_WhenPassagesAreWithin60Minutes_ShouldReturnSingleBatch()
+        {
+            // Arrange
+            TollCalculator tollCalculator = new TollCalculator();
+            DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 6, 59, 59)];
+
+            // Act
+            var batches = tollCalculator.BatchPassages(timestamps).ToList();
+
+            // Assert
+            batches.Should().HaveCount(1);
+            batches.First().Should().HaveCount(2);
+        }
+
+        [Fact]
+        public void BatchPassages_WhenPassagesAreMoreThan60MinutesApart_ShouldReturnMultipleBatches()
+        {
+            // Arrange
+            TollCalculator tollCalculator = new TollCalculator();
+            DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 7, 0, 0)];
+
+            // Act
+            var batches = tollCalculator.BatchPassages(timestamps).ToList();
+
+            // Assert
+            batches.Should().HaveCount(2);
+            batches.First().Should().HaveCount(1);
+            batches.Last().Should().HaveCount(1);
+        }
     }
 }

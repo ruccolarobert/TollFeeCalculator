@@ -103,6 +103,35 @@
             return false;
         }
 
+        /**
+         * Groups the timestamps into batches of 60 minutes
+         *
+         * @param timestamps - all timestamps
+         * @return - the timestamps grouped into 60 minute batches
+         */
+        internal IEnumerable<List<DateTime>> BatchPassages(DateTime[] timestamps)
+        {
+            var sortedTimestamps = timestamps.OrderBy(timestamp => timestamp);
+
+            var tempLeader = sortedTimestamps.First();
+            var tempGroup = new List<DateTime> { tempLeader };
+            foreach (var timestamp in sortedTimestamps.Skip(1))
+            {
+                if ((timestamp - tempLeader).TotalMinutes < 60)
+                {
+                    tempGroup.Add(timestamp);
+                }
+                else
+                {
+                    yield return tempGroup;
+                    tempLeader = timestamp;
+                    tempGroup = [timestamp];
+                }
+            }
+
+            yield return tempGroup; // yield last group
+        }
+
         private enum TollFreeVehicles
         {
             Motorbike = 0,
