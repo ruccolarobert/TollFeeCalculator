@@ -10,10 +10,10 @@ namespace TollFeeCalculator.Tests
         private static readonly TollCalculator _tollCalculator = new(_holidayServiceMock.Object);
 
         [Fact]
-        public void GetTollFee_WhenVehicleIsNull_ShouldThrowException()
+        public void GetTollFee_WhenVehicleIsNull_ShouldThrowException() // Not really a case, kept as the original code has it (was without project)
         {
             // Arrange
-            DateTime[] timestamps = new DateTime[] { new DateTime(2024, 10, 3, 6, 0, 0) };
+            DateTime[] timestamps = [new(2024, 10, 3, 6, 0, 0)];
 
             // Act
             Action act = () => _tollCalculator.GetTollFee(null, timestamps);
@@ -39,10 +39,10 @@ namespace TollFeeCalculator.Tests
         public void BatchPassages_WhenPassagesAreWithin60Minutes_ShouldReturnSingleBatch()
         {
             // Arrange
-            DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 6, 59, 59)];
+            DateTime[] timestamps = [new(2024, 10, 3, 6, 0, 0), new(2024, 10, 3, 6, 59, 59)];
 
             // Act
-            var batches = _tollCalculator.BatchPassages(timestamps).ToList();
+            var batches = TollCalculator.BatchPassages(timestamps).ToList();
 
             // Assert
             batches.Should().HaveCount(1);
@@ -53,10 +53,10 @@ namespace TollFeeCalculator.Tests
         public void BatchPassages_WhenPassagesAreMoreThan60MinutesApart_ShouldReturnMultipleBatches()
         {
             // Arrange
-            DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 7, 0, 0)];
+            DateTime[] timestamps = [new(2024, 10, 3, 6, 0, 0), new(2024, 10, 3, 7, 0, 0)];
 
             // Act
-            var batches = _tollCalculator.BatchPassages(timestamps).ToList();
+            var batches = TollCalculator.BatchPassages(timestamps).ToList();
 
             // Assert
             batches.Should().HaveCount(2);
@@ -69,11 +69,11 @@ namespace TollFeeCalculator.Tests
         {
             // Arrange
             DateTime[] timestamps = [
-                new DateTime(2024, 10, 3, 6, 0, 0), // 8
-                new DateTime(2024, 10, 3, 6, 59, 59)]; // 13
+                new(2024, 10, 3, 6, 0, 0), // 8
+                new(2024, 10, 3, 6, 59, 59)]; // 13
 
             // Act
-            var fee = _tollCalculator.MaxFeeForBatch(timestamps);
+            var fee = TollCalculator.MaxFeeForBatch(timestamps);
 
             // Assert
             fee.Should().Be(13);
