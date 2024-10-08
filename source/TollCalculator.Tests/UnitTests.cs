@@ -1,18 +1,22 @@
 ﻿using FluentAssertions;
+using Moq;
+using TollFeeCaclulator.Utils;
 
 namespace TollFeeCalculator.Tests
 {
     public class UnitTests
     {
+        private static readonly Mock<IHolidayService> _holidayServiceMock = new Mock<IHolidayService>();
+        private static readonly TollCalculator _tollCalculator = new(_holidayServiceMock.Object);
+
         [Fact]
         public void GetTollFee_WhenVehicleIsNull_ShouldThrowException()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             DateTime[] timestamps = new DateTime[] { new DateTime(2024, 10, 3, 6, 0, 0) };
 
             // Act
-            Action act = () => tollCalculator.GetTollFee(null, timestamps);
+            Action act = () => _tollCalculator.GetTollFee(null, timestamps);
 
             // Assert
             act.Should().Throw<NullReferenceException>();
@@ -22,11 +26,10 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenPassagesFromDifferentDates_ShouldThrowException()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             DateTime[] timestamps = [new(2024, 10, 3, 6, 0, 0), new(2024, 10, 4, 6, 0, 0)];
 
             // Act
-            Action act = () => tollCalculator.GetTollFee(new Car(), timestamps);
+            Action act = () => _tollCalculator.GetTollFee(new Car(), timestamps);
 
             // Assert
             act.Should().Throw<ArgumentException>();
@@ -36,11 +39,10 @@ namespace TollFeeCalculator.Tests
         public void BatchPassages_WhenPassagesAreWithin60Minutes_ShouldReturnSingleBatch()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 6, 59, 59)];
 
             // Act
-            var batches = tollCalculator.BatchPassages(timestamps).ToList();
+            var batches = _tollCalculator.BatchPassages(timestamps).ToList();
 
             // Assert
             batches.Should().HaveCount(1);
@@ -51,11 +53,10 @@ namespace TollFeeCalculator.Tests
         public void BatchPassages_WhenPassagesAreMoreThan60MinutesApart_ShouldReturnMultipleBatches()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             DateTime[] timestamps = [new DateTime(2024, 10, 3, 6, 0, 0), new DateTime(2024, 10, 3, 7, 0, 0)];
 
             // Act
-            var batches = tollCalculator.BatchPassages(timestamps).ToList();
+            var batches = _tollCalculator.BatchPassages(timestamps).ToList();
 
             // Assert
             batches.Should().HaveCount(2);
@@ -67,13 +68,12 @@ namespace TollFeeCalculator.Tests
         public void MaxFeeForBatch_WhenPassagesAreWithin60Minutes_ShouldReturnTheHighestFee()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             DateTime[] timestamps = [
                 new DateTime(2024, 10, 3, 6, 0, 0), // 8
                 new DateTime(2024, 10, 3, 6, 59, 59)]; // 13
 
             // Act
-            var fee = tollCalculator.MaxFeeForBatch(timestamps);
+            var fee = _tollCalculator.MaxFeeForBatch(timestamps);
 
             // Assert
             fee.Should().Be(13);

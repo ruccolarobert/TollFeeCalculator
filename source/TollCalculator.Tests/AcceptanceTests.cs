@@ -1,9 +1,14 @@
 using FluentAssertions;
+using Moq;
+using TollFeeCaclulator.Utils;
 
 namespace TollFeeCalculator.Tests
 {
     public class AcceptanceTests
     {
+        private static readonly Mock<IHolidayService> _holidayServiceMock = new Mock<IHolidayService>();
+        private static readonly TollCalculator _tollCalculator = new(_holidayServiceMock.Object);
+
         // Varje passage genom en betalstation i Göteborg kostar 8, 13 eller 18 kronor beroende på tidpunkt.
         // Tider           Belopp
         // 06:00–06:29     8 kr
@@ -40,11 +45,10 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesAToll_ShouldCalculateTheExpectedCost(int hour, int minute, int second, int expectedFee)
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamp = new DateTime(2024, 10, 3, hour, minute, second);
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), [timestamp]);
+            var fee = _tollCalculator.GetTollFee(new Car(), [timestamp]);
             
             // Assert
             fee.Should().Be(expectedFee);
@@ -57,7 +61,6 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesTollsMultipleTimesInOneDay_ShouldNotExceed60SEK()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamps = new DateTime[]
             {
                 new(2024, 10, 3, 6, 30, 0),  // 13
@@ -69,7 +72,7 @@ namespace TollFeeCalculator.Tests
             };                               // Total: 88
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), timestamps);
+            var fee = _tollCalculator.GetTollFee(new Car(), timestamps);
             
             // Assert
             fee.Should().Be(60);
@@ -83,11 +86,10 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesTollOnSaturday_ShouldNotCharge()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamp = new DateTime(2024, 10, 5, 6, 30, 0);
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), [timestamp]);
+            var fee = _tollCalculator.GetTollFee(new Car(), [timestamp]);
             
             // Assert
             fee.Should().Be(0);
@@ -101,11 +103,11 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesTollOnPublicHoliday_ShouldNotCharge(int year, int month, int day)
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
+            var tollCalculator2013 = new TollCalculator(new Holiday2013Service());
             var timestamp = new DateTime(year, month, day, 6, 30, 0);
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), [timestamp]);
+            var fee = tollCalculator2013.GetTollFee(new Car(), [timestamp]);
             
             // Assert
             fee.Should().Be(0);
@@ -116,11 +118,10 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesTollInJuly_ShouldNotCharge()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamp = new DateTime(2024, 7, 5, 6, 30, 0);
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), [timestamp]);
+            var fee = _tollCalculator.GetTollFee(new Car(), [timestamp]);
             
             // Assert
             fee.Should().Be(0);
@@ -131,11 +132,10 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenMotorbikePassesToll_ShouldNotCharge()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamp = new DateTime(2024, 10, 3, 6, 30, 0);
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Motorbike(), [timestamp]);
+            var fee = _tollCalculator.GetTollFee(new Motorbike(), [timestamp]);
             
             // Assert
             fee.Should().Be(0);
@@ -147,7 +147,6 @@ namespace TollFeeCalculator.Tests
         public void GetTollFee_WhenCarPassesMultipleTollsWithin60Minutes_ShouldChargeTheHighestFee()
         {
             // Arrange
-            TollCalculator tollCalculator = new TollCalculator();
             var timestamps = new DateTime[]
             {
                 new(2024, 10, 3, 6, 30, 0),  // 13
@@ -155,7 +154,7 @@ namespace TollFeeCalculator.Tests
             };                               // Total: 31
 
             // Act
-            var fee = tollCalculator.GetTollFee(new Car(), timestamps);
+            var fee = _tollCalculator.GetTollFee(new Car(), timestamps);
             
             // Assert
             fee.Should().Be(18);
