@@ -79,7 +79,24 @@ namespace TollFeeCalculator.Tests
         }
 
         // Trängselskatt tas ut för fordon som passerar en betalstation måndag till fredag mellan 06.00 och 18.29.
-        // done?
+        [Theory]
+        [InlineData(7)] // Måndag
+        [InlineData(8)] // Tisdag
+        [InlineData(9)] // Onsdag
+        [InlineData(10)] // Torsdag
+        [InlineData(11)] // Fredag
+        public void GetTollFee_WhenCarPassesTollOnWeekdayBetween6And1829_ShouldCharge(int dayOfWeek)
+        {
+            // Arrange
+            var timestamp = new DateTime(2024, 10, dayOfWeek, 6, 30, 0); // 13
+
+            // Act
+            var fee = _tollCalculator.GetTollFee(new Car(), [timestamp]);
+
+            // Assert
+            fee.Should().Be(13);
+        }
+
 
         // Skatt tas inte ut lördagar,
         [Fact]
